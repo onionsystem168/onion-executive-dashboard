@@ -3,90 +3,227 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ONION Mobility - Executive Management Dashboard</title>
-    <!-- Tailwind CSS CDN for fast, modern styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js CDN for Power BI-style graphs -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body class="bg-gray-100 font-sans antialiased">
+    <title>ONiON Executive Dashboard</title>
+    <link rel="icon" type="image/png" href="assets/onion-mark.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js pinned to an exact version so the page can't change underneath us -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            /* ONiON brand */
+            --brand: #0050FF;
+            --brand-700: #003BC2;
+            --brand-50: #EEF3FF;
+            --navy: #0A1B4D;
+            /* Neutrals */
+            --ink: #0F1A33;
+            --muted: #5E6B85;
+            --faint: #8C97AD;
+            --line: #E3E8F1;
+            --line-soft: #F0F2F7;
+            --bg: #F3F5FA;
+            --card: #FFFFFF;
+            /* Status */
+            --good: #0E9F6E;
+            --good-bg: #E7F7F0;
+            --warn: #B97400;
+            --warn-bg: #FFF4DD;
+            --bad: #D93848;
+            --bad-bg: #FDECEE;
+            --radius: 14px;
+            --shadow: 0 1px 2px rgba(10, 27, 77, .05), 0 4px 16px rgba(10, 27, 77, .04);
+        }
 
-    <div class="flex h-screen overflow-hidden">
-        
-        <!-- Sidebar -->
-        <div class="hidden md:flex md:flex-shrink-0">
-            <div class="flex flex-col w-64 bg-slate-900 text-white">
-                <div class="flex items-center justify-center h-16 bg-slate-800 px-4">
-                    <span class="text-xl font-bold tracking-wider text-red-500">ONION DASHBOARD</span>
-                </div>
-                <div class="flex flex-col flex-grow px-4 py-6 space-y-2">
-                    <a href="#" class="bg-slate-800 text-white px-4 py-2 rounded-md font-medium">Overview</a>
-                    <a href="#" class="hover:bg-slate-800 text-gray-300 px-4 py-2 rounded-md font-medium transition">Finance</a>
-                    <a href="#" class="hover:bg-slate-800 text-gray-300 px-4 py-2 rounded-md font-medium transition">Sales & Pipeline</a>
-                    <a href="#" class="hover:bg-slate-800 text-gray-300 px-4 py-2 rounded-md font-medium transition">Operations & Swapping</a>
-                    <a href="#" class="hover:bg-slate-800 text-gray-300 px-4 py-2 rounded-md font-medium transition">Factory & Inventory</a>
-                </div>
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            /* "Noto Sans Khmer" is the fallback for a future Khmer translation */
+            font: 14px/1.45 Inter, "Noto Sans Khmer", system-ui, -apple-system, "Segoe UI", sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        a { color: var(--brand); text-decoration: none; }
+        .wrap { max-width: 1480px; margin: 0 auto; padding: 0 24px; }
+        .muted { color: var(--faint); }
+
+        /* ---------- Top bar ---------- */
+        .topbar { position: sticky; top: 0; z-index: 20; background: #fff; border-bottom: 1px solid var(--line); }
+        .topbar-in { max-width: 1480px; margin: 0 auto; padding: 12px 24px 6px; display: flex; align-items: center; gap: 12px 20px; flex-wrap: wrap; }
+        .brand { display: flex; align-items: center; gap: 10px; color: var(--ink); }
+        .brand img { display: block; }
+        .brand strong { display: block; font-size: 17px; font-weight: 700; color: var(--brand); letter-spacing: .2px; line-height: 1.1; }
+        .brand span { display: block; font-size: 12px; color: var(--muted); }
+        .top-meta { flex: 1; min-width: 200px; color: var(--muted); font-size: 13px; }
+        .top-meta p { margin: 0; }
+        .top-meta b { color: var(--ink); }
+        .top-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+        .seg { display: inline-flex; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
+        .seg button { border: 0; background: none; font: inherit; font-size: 12.5px; color: var(--muted); padding: 6px 10px; border-radius: 7px; cursor: pointer; white-space: nowrap; }
+        .seg button b { font-weight: 600; color: var(--ink); margin-right: 5px; }
+        .seg button:hover { color: var(--ink); }
+        .seg button[aria-pressed="true"] { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(10, 27, 77, .14); }
+        .seg button[aria-pressed="true"] b { color: var(--brand); }
+        .seg button:focus-visible, .btn:focus-visible, .tabs a:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+        .btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: #fff; border-radius: 10px; padding: 7px 12px; font: inherit; font-size: 13px; font-weight: 500; color: var(--ink); cursor: pointer; }
+        .btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+        .btn.primary:hover { background: var(--brand-700); }
+
+        .tabs { max-width: 1480px; margin: 0 auto; padding: 0 24px; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+        .tabs::-webkit-scrollbar { display: none; }
+        .tabs a { padding: 9px 12px 10px; font-size: 13px; font-weight: 500; color: var(--muted); border-bottom: 2px solid transparent; white-space: nowrap; }
+        .tabs a:hover { color: var(--ink); }
+        .tabs a.active { color: var(--brand); border-color: var(--brand); }
+
+        .banner { max-width: 1432px; margin: 16px auto 0; padding: 10px 14px; border-radius: 10px; background: var(--warn-bg); color: var(--warn); font-size: 13px; font-weight: 500; }
+
+        /* ---------- Sections & grid ---------- */
+        .section { padding-top: 30px; scroll-margin-top: 112px; }
+        .section-h { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+        .section-h h2 { margin: 0; font-size: 19px; font-weight: 700; letter-spacing: -.2px; }
+        .section-h p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+        .link { font-size: 13px; font-weight: 500; white-space: nowrap; }
+        .link:hover { text-decoration: underline; }
+
+        .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px; }
+        .span-3 { grid-column: span 3; }
+        .span-4 { grid-column: span 4; }
+        .span-5 { grid-column: span 5; }
+        .span-6 { grid-column: span 6; }
+        .span-7 { grid-column: span 7; }
+        .span-8 { grid-column: span 8; }
+        .span-12 { grid-column: span 12; }
+
+        .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px 18px 16px; min-width: 0; }
+        .card-h { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+        .card-h h3 { margin: 0; font-size: 14px; font-weight: 600; }
+        .card-h p { margin: 2px 0 0; font-size: 12px; color: var(--faint); }
+        .chart-box { position: relative; width: 100%; }
+        .note { margin: 10px 0 0; font-size: 12px; color: var(--faint); }
+        .empty {
+            display: flex; align-items: center; justify-content: center; min-height: 160px; padding: 16px; text-align: center;
+            color: var(--faint); font-size: 13px; border-radius: 10px;
+            background: repeating-linear-gradient(-45deg, #FAFBFD, #FAFBFD 8px, #F4F6FA 8px, #F4F6FA 16px);
+        }
+
+        /* ---------- KPI tiles ---------- */
+        .kpis { grid-column: span 12; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+        .kpi { position: relative; overflow: hidden; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px 18px; }
+        .kpi::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--brand); }
+        .kpi-l { margin: 0; font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .45px; }
+        .kpi-v { margin: 6px 0; font-size: 28px; font-weight: 700; letter-spacing: -.5px; font-variant-numeric: tabular-nums; }
+        .kpi-f { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 12px; color: var(--muted); }
+
+        .delta { display: inline-flex; align-items: center; gap: 3px; padding: 1px 7px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+        .delta.good { color: var(--good); background: var(--good-bg); }
+        .delta.bad { color: var(--bad); background: var(--bad-bg); }
+        .delta.flat, .delta.none { color: var(--faint); background: var(--bg); font-weight: 500; }
+
+        /* ---------- Tables ---------- */
+        .tbl { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+        .tbl th { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: right; font-size: 11px; font-weight: 600; color: var(--faint); text-transform: uppercase; letter-spacing: .35px; white-space: nowrap; }
+        .tbl td { padding: 7px 8px; border-bottom: 1px solid var(--line-soft); text-align: right; }
+        .tbl th:first-child, .tbl td:first-child { text-align: left; }
+        .tbl tr.group td { background: var(--bg); color: var(--muted); font-size: 11.5px; font-weight: 600; text-align: left; }
+        .tbl tr.sub td { font-weight: 600; }
+        .tbl tr.total td { font-weight: 700; border-top: 1px solid var(--line); border-bottom: 0; }
+        .sw { display: inline-block; width: 9px; height: 9px; margin-right: 8px; border-radius: 3px; }
+
+        /* ---------- Progress ---------- */
+        .prog { margin: 4px 0 16px; }
+        .prog-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-weight: 500; }
+        .prog-top small { color: var(--muted); font-size: 12px; font-weight: 600; }
+        .prog-num { margin-top: 4px; color: var(--muted); font-size: 13px; }
+        .prog-num b { margin-right: 2px; color: var(--ink); font-size: 24px; letter-spacing: -.3px; }
+        .bar { height: 10px; margin: 8px 0 6px; background: #E9EEF8; border-radius: 999px; overflow: hidden; }
+        .bar i { display: block; height: 100%; background: var(--brand); border-radius: 999px; }
+        .bar i.warn { background: #F5A524; }
+        .bar i.good { background: var(--good); }
+        .prog-sub { margin: 0; font-size: 12px; color: var(--muted); }
+
+        /* ---------- Attention & status lists ---------- */
+        .att-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .att-cols h4 { margin: 0 0 6px; font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .45px; }
+        .att { list-style: none; margin: 0; padding: 0; }
+        .att li { display: flex; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line-soft); }
+        .att li:first-child { border-top: 0; padding-top: 4px; }
+        .dot { flex: none; width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; background: var(--faint); }
+        .lv-bad .dot, .lv-high .dot { background: var(--bad); }
+        .lv-warn .dot, .lv-medium .dot { background: #F5A524; }
+        .lv-good .dot { background: var(--good); }
+        .lv-info .dot { background: var(--brand); }
+        .att-t { margin: 0; font-size: 13px; font-weight: 600; }
+        .att-d { margin: 2px 0 0; font-size: 12.5px; color: var(--muted); }
+        .pill { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: var(--bg); color: var(--muted); font-size: 11px; font-weight: 600; vertical-align: 1px; }
+        .pill.bad { background: var(--bad-bg); color: var(--bad); }
+        .pill.warn { background: var(--warn-bg); color: var(--warn); }
+
+        .stat { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid var(--line-soft); }
+        .stat:first-child { border-top: 0; padding-top: 2px; }
+        .stat > span { color: var(--muted); font-size: 13px; }
+        .stat strong { margin-right: 8px; font-size: 15px; font-variant-numeric: tabular-nums; }
+
+        .actions { margin: 0; padding-left: 18px; columns: 2 320px; column-gap: 32px; color: var(--ink); }
+        .actions li { margin: 0 0 6px; break-inside: avoid; }
+
+        /* ---------- Footer ---------- */
+        .footer { padding-top: 36px; padding-bottom: 40px; color: var(--muted); font-size: 12px; }
+        .foot-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; border-top: 1px solid var(--line); padding-top: 18px; }
+        .footer h4 { margin: 0 0 6px; font-size: 11.5px; text-transform: uppercase; letter-spacing: .45px; color: var(--muted); }
+        .footer ul { margin: 0; padding-left: 16px; }
+        .footer li, .footer p { margin: 0 0 4px; }
+
+        /* ---------- Responsive ---------- */
+        @media (max-width: 1180px) {
+            .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .span-3, .span-4, .span-5, .span-7 { grid-column: span 6; }
+            .span-8 { grid-column: span 12; }
+        }
+        @media (max-width: 760px) {
+            .wrap, .topbar-in, .tabs { padding-left: 16px; padding-right: 16px; }
+            .grid > * { grid-column: span 12 !important; }
+            .att-cols, .foot-grid { grid-template-columns: 1fr; }
+            .kpi-v { font-size: 24px; }
+            .seg button span { display: none; }
+            .seg button b { margin-right: 0; }
+            .section-h { flex-direction: column; align-items: flex-start; gap: 6px; }
+        }
+        @media (max-width: 420px) {
+            .kpis { grid-template-columns: 1fr; }
+        }
+        @media print {
+            .topbar { position: static; }
+            .tabs, .top-actions { display: none; }
+            .card, .kpi { box-shadow: none; break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="topbar-in">
+            <a class="brand" href="#overview">
+                <img src="assets/onion-mark.png" alt="ONiON Mobility" width="38" height="38">
+                <div><strong>ONiON</strong><span id="appTitle">Executive Dashboard</span></div>
+            </a>
+            <div class="top-meta"><p id="reportMeta"></p></div>
+            <div class="top-actions">
+                <div id="weekPicker" class="seg" role="group"></div>
+                <a id="reportLink" class="btn primary" target="_blank" rel="noopener" hidden></a>
+                <select id="langSelect" class="btn" hidden></select>
             </div>
         </div>
+        <nav id="sectionNav" class="tabs"></nav>
+    </header>
 
-        <!-- Main Content Area -->
-        <div class="flex flex-col flex-1 overflow-y-auto">
-            
-            <!-- Top Header -->
-            <header class="bg-white shadow-sm h-16 flex items-center justify-between px-8">
-                <h1 class="text-2xl font-bold text-gray-800">Weekly Executive Summary</h1>
-                <div class="flex items-center space-x-4">
-                    <span class="text-sm bg-red-100 text-red-700 font-semibold px-3 py-1 rounded-full">Week 37 Report</span>
-                    <a href="https://docs.google.com" target="_blank" class="text-sm text-blue-600 hover:underline font-medium">📄 Open Weekly Google Doc</a>
-                </div>
-            </header>
+    <div id="banner" class="banner" hidden></div>
+    <main id="app" class="wrap"></main>
+    <footer id="footer" class="wrap footer"></footer>
 
-            <!-- Dashboard Body -->
-            <main class="p-8 space-y-6">
-                
-                <!-- KPI Summary Cards Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                        <p class="text-sm text-gray-500 font-medium">Total Revenue (Wk 37)</p>
-                        <h3 class="text-3xl font-bold text-gray-800 mt-2">$32,405</h3>
-                        <span class="text-xs text-green-600 font-semibold mt-1 inline-block">↑ +12% vs last week</span>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                        <p class="text-sm text-gray-500 font-medium">X-Series Units Sold</p>
-                        <h3 class="text-3xl font-bold text-gray-800 mt-2">36 Units</h3>
-                        <span class="text-xs text-gray-500 font-medium mt-1 inline-block">Target: 40/wk</span>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                        <p class="text-sm text-gray-500 font-medium">Battery Swaps (Total)</p>
-                        <h3 class="text-3xl font-bold text-gray-800 mt-2">2,890</h3>
-                        <span class="text-xs text-green-600 font-semibold mt-1 inline-block">Stable operation rate</span>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                        <p class="text-sm text-gray-500 font-medium">Open PRs / Procurement</p>
-                        <h3 class="text-3xl font-bold text-gray-800 mt-2">18 PRs</h3>
-                        <span class="text-xs text-amber-600 font-semibold mt-1 inline-block">Action required</span>
-                    </div>
-                </div>
-
-                <!-- Charts Section (Power BI Look & Feel) -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Finance Revenue Trend Chart -->
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">Revenue Trend by Model ($)</h3>
-                        <canvas id="revenueChart"></canvas>
-                    </div>
-                    <!-- Operations Swapping Chart -->
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">Weekly Battery Swaps by Station</h3>
-                        <canvas id="swapsChart"></canvas>
-                    </div>
-                </div>
-
-            </main>
-        </div>
-    </div>
-
-    <!-- Link to JavaScript logic -->
     <script src="script.js"></script>
 </body>
 </html>
